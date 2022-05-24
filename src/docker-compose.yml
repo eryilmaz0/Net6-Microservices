@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+
+  catalog_db:
+    image: mongo
+  
+  catalog_api:
+    image: catalog_api
+    build: 
+      context: .
+      dockerfile: Services/Catalog/Catalog.API/Dockerfile
+
+
+volumes:
+  mongo_data:
+  portainer_data:
+  postgres_data:
+  pgadmin_data:
