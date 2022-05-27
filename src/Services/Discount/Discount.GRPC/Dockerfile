@@ -5,10 +5,10 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["Services/Discount/Discount.GRPC/Discount.GRPC.csproj", "Discount.GRPC/"]
+COPY ["Services/Discount/Discount.GRPC/Discount.GRPC.csproj", "Services/Discount/Discount.GRPC/"]
 RUN dotnet restore "Services/Discount/Discount.GRPC/Discount.GRPC.csproj"
 COPY . .
-WORKDIR "/src/Discount.GRPC"
+WORKDIR "/src/Services/Discount/Discount.GRPC"
 RUN dotnet build "Discount.GRPC.csproj" -c Release -o /app/build
 
 FROM build AS publish
