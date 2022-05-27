@@ -30,6 +30,7 @@ public class BasketController : ControllerBase
     [ProducesResponseType(typeof(ShoppingCart), (int)HttpStatusCode.OK)]
     public async Task<ActionResult<ShoppingCart>> UpdateBasket([FromBody] ShoppingCart basket)
     {
+        //Communicate with Discount grpc server and calculate latest price of product into shopping cart
         return Ok(await this._basketRepository.UpdateBasket(basket));
     }
 
