@@ -5,10 +5,10 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /src
-COPY ["Services/Ordering/Ordering.API/Ordering.API.csproj", "Ordering.API/"]
+COPY ["Services/Ordering/Ordering.API/Ordering.API.csproj", "Services/Ordering/Ordering.API/"]
 RUN dotnet restore "Services/Ordering/Ordering.API/Ordering.API.csproj"
 COPY . .
-WORKDIR "/src/Ordering.API"
+WORKDIR "/src/Services/Ordering/Ordering.API"
 RUN dotnet build "Ordering.API.csproj" -c Release -o /app/build
 
 FROM build AS publish

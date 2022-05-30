@@ -31,6 +31,16 @@ services:
       - postgres_data:/var/lib/postgresql/data/
 
 
+  orderdb:
+    container_name: orderdb
+    environment:
+      SA_PASSWORD: "SwN12345678"
+      ACCEPT_EULA: "Y"
+    restart: always
+    ports:
+      - "1433:1433"
+
+
   pgadmin:
     container_name: pgadmin
     environment:
@@ -76,6 +86,7 @@ services:
     ports:
       - 8002:80
   
+
   discount_grpc:
     container_name: discount_grpc
     environment:
@@ -85,3 +96,15 @@ services:
       - discount_db
     ports:
       - "8003:80"
+
+
+  ordering_api:
+    container_name: ordering_api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - "ConnectionStrings:OrderingConnectionString=Server=orderdb;Database=OrderDb;User Id=sa;Password=SwN12345678"  
+      - "EventBusSettings:HostAddress=amqp://guest:guest@rabbitmq:5672"
+    depends_on:
+        - orderdb
+    ports:
+        - "8004:80"
