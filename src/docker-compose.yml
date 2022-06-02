@@ -56,6 +56,12 @@ services:
       context: .
       dockerfile: ApiGateways/OcelotApiGw/Dockerfile
 
+  shopping_aggregator:
+    image: ${DOCKER_REGISTRY-}shoppingaggregator
+    build:
+      context: .
+      dockerfile: ApiGateways/Shopping.Aggregator/Dockerfile
+
 
 volumes:
   mongo_data:
