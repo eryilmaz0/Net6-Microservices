@@ -1,7 +1,10 @@
+using Common.Logging;
 using Discount.API.Extensions;
 using Discount.API.Repositories;
+using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
+builder.Host.UseSerilog(SeriLogger.Configure);
 //builder.Services.MigrateDatabase<Program>();
 
 
