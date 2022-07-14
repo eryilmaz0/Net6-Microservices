@@ -1,15 +1,15 @@
 ﻿using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
+using Polly;
 
 namespace Ordering.API.Extensions;
 
 public static class HostExtensions
 {
      public static IServiceCollection MigrateDatabase<TContext>(this IServiceCollection serviceCollection, 
-                                                Action<TContext, IServiceProvider> seeder, 
-                                                int? retry = 0) where TContext : DbContext
-            {
-                int retryForAvailability = retry.Value;
+                                                Action<TContext, IServiceProvider> seeder) where TContext : DbContext
+
+    {
                 var serviceProvider = serviceCollection.BuildServiceProvider();
                 
                 var logger = serviceProvider.GetRequiredService<ILogger<TContext>>();
@@ -19,20 +19,24 @@ public static class HostExtensions
                 {
                     logger.LogInformation("Migrating database associated with context {DbContextName}", typeof(TContext).Name);
     
-                    InvokeSeeder(seeder, context, serviceProvider);
-    
+                    //InvokeSeeder(seeder, context, serviceProvider);
+                    var retry = Policy.Handle<SqlException>()
+                    .WaitAndRetry(
+                         retryCount: 50,
+                         sleepDurationProvider: retryAttempt => TimeSpan.FromSeconds(3),
+                         onRetry: (exception, retryCount, context) =>
+                         {
+                             logger.LogError($"Retry {retryCount} of {context.PolicyKey} at {context.OperationKey}, due to: {exception}.");
+                         });
+
+                    retry.Execute(() => InvokeSeeder(seeder, context, serviceProvider));
+
+
                     logger.LogInformation("Migrated database associated with context {DbContextName}", typeof(TContext).Name);
                 }
                 catch (SqlException ex)
                 {
-                    logger.LogError(ex, "An error occurred while migrating the database used on context {DbContextName}", typeof(TContext).Name);
-    
-                    if (retryForAvailability < 50)
-                    {
-                        retryForAvailability++;
-                        System.Threading.Thread.Sleep(2000);
-                        MigrateDatabase<TContext>(serviceCollection, seeder, retryForAvailability);
-                    }
+                    logger.LogError(ex, "An error occurred while migrating the database used on context {DbContextName}", typeof(TContext).Name);                   
                 }
                 
                 return serviceCollection;

@@ -1,5 +1,7 @@
 using Common.Logging;
+using Polly;
 using Serilog;
+using Shopping.Aggregator.Policy;
 using Shopping.Aggregator.Services;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -16,15 +18,24 @@ builder.Services.AddTransient<LoggingDelegatingHandler>();
 
 builder.Services.AddHttpClient<ICatalogService, CatalogService>(c =>
     c.BaseAddress = new Uri(builder.Configuration["ApiSettings:CatalogUrl"]))
-    .AddHttpMessageHandler<LoggingDelegatingHandler>();
+    .AddHttpMessageHandler<LoggingDelegatingHandler>()
+    .AddPolicyHandler(HttpPolicies.GetRetryPolicy())
+    .AddPolicyHandler(HttpPolicies.GetCircuitBreakerPolicy());
+
 
 builder.Services.AddHttpClient<IBasketService, BasketService>(c =>
     c.BaseAddress = new Uri(builder.Configuration["ApiSettings:BasketUrl"]))
-    .AddHttpMessageHandler<LoggingDelegatingHandler>();
+    .AddHttpMessageHandler<LoggingDelegatingHandler>()
+    .AddPolicyHandler(HttpPolicies.GetRetryPolicy())
+    .AddPolicyHandler(HttpPolicies.GetCircuitBreakerPolicy());
+
 
 builder.Services.AddHttpClient<IOrderService, OrderService>(c =>
     c.BaseAddress = new Uri(builder.Configuration["ApiSettings:OrderingUrl"]))
-    .AddHttpMessageHandler<LoggingDelegatingHandler>();
+    .AddHttpMessageHandler<LoggingDelegatingHandler>()
+    .AddPolicyHandler(HttpPolicies.GetRetryPolicy())
+    .AddPolicyHandler(HttpPolicies.GetCircuitBreakerPolicy());
+
 
 var app = builder.Build();
 

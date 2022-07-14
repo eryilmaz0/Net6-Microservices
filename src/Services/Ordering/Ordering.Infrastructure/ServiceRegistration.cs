@@ -15,7 +15,14 @@ public static class ServiceRegistration
     public static IServiceCollection RegisterInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddDbContext<OrderContext>(options =>
-            options.UseSqlServer(configuration.GetConnectionString("OrderingConnectionString")));
+        {
+            options.UseSqlServer(configuration.GetConnectionString("OrderingConnectionString"), sqlOptions =>
+            {
+                sqlOptions.EnableRetryOnFailure(50);
+            });
+
+        });
+           
 
         services.AddScoped(typeof(IAsyncRepository<>), typeof(RepositoryBase<>));
         services.AddScoped<IOrderRepository, OrderRepository>();
