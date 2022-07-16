@@ -1,4 +1,7 @@
 using Common.Logging;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Polly;
 using Serilog;
 using Shopping.Aggregator.Policy;
@@ -37,7 +40,18 @@ builder.Services.AddHttpClient<IOrderService, OrderService>(c =>
     .AddPolicyHandler(HttpPolicies.GetCircuitBreakerPolicy());
 
 
+builder.Services.AddHealthChecks()
+                .AddUrlGroup(new Uri($"{builder.Configuration["ApiSettings:CatalogUrl"]}/swagger/index.html"), "Catalog.API", HealthStatus.Degraded)
+                .AddUrlGroup(new Uri($"{builder.Configuration["ApiSettings:BasketUrl"]}/swagger/index.html"), "Basket.API", HealthStatus.Degraded)
+                .AddUrlGroup(new Uri($"{builder.Configuration["ApiSettings:OrderingUrl"]}/swagger/index.html"), "Ordering.API", HealthStatus.Degraded);
+
 var app = builder.Build();
+
+app.MapHealthChecks("/hc", new HealthCheckOptions()
+                                  {
+                                     Predicate = _ => true,
+                                      ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+                                  });
 
 // Configure the HTTP request pipeline.
 

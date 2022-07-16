@@ -1,6 +1,9 @@
 using Common.Logging;
 using EventBus.Messages.Common;
+using HealthChecks.UI.Client;
 using MassTransit;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Ordering.API.EventBusConsumer;
 using Ordering.API.Extensions;
 using Ordering.Application;
@@ -34,6 +37,7 @@ builder.Services.AddMassTransit(config => {
 
     config.UsingRabbitMq((ctx, cfg) => {
         cfg.Host(builder.Configuration["EventBusSettings:HostAddress"]);
+        cfg.UseHealthCheck(ctx);
 
         cfg.ReceiveEndpoint(EventBusConstants.BasketCheckoutQueue, c =>
         {
@@ -44,7 +48,13 @@ builder.Services.AddMassTransit(config => {
 builder.Services.AddMassTransitHostedService();
 builder.Services.AddAutoMapper(typeof(Program));
 
+builder.Services.AddHealthChecks().AddDbContextCheck<OrderContext>("Sql Server Health Check", HealthStatus.Degraded);
 var app = builder.Build();
+app.MapHealthChecks("/hc", new HealthCheckOptions()
+{
+    Predicate = _ => true,
+    ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+});
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
