@@ -68,6 +68,11 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana:7.9.2
 
+  webstatus:
+    image: webstatus
+    build:
+      context: .
+      dockerfile: WebApps/WebStatus/Dockerfile
 
 volumes:
   mongo_data:
